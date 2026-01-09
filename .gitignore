@@ -1,0 +1,47 @@
+# Environments
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+supabase/.env
+
+# Dependencies
+node_modules/
+venv/
+env/
+.venv/
+frontend/node_modules/
+backend/venv/
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+frontend/dist/
+frontend/.vite/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backend specific
+__pycache__/
+*.py[cod]
+*$py.class
+backend/check_output.json
+backend/restart_backend.ps1
+frontend/tsc_error.log
+frontend/package-lock.json
+**/__pycache__/
+**/.DS_Store
+**/*.pyc
+**/node_modules
+**/dist
+**/.env*
