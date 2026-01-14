@@ -46,7 +46,7 @@ class JDEService:
                 param_idx += 1
                 
             if min_stock is not None:
-                where_clauses.append(f"l.lipqoh >= {min_stock}")
+                where_clauses.append(f"l.lipqoh >= {min_stock * 100}")
                 
             where_str = " AND ".join(where_clauses)
             
@@ -67,13 +67,14 @@ class JDEService:
             # El usuario indicó que 'liitm' (numérico) es el item correcto.
             data_query = f"""
                 SELECT 
-                    CAST(CAST(l.liitm AS BIGINT) AS TEXT) as litm,
+                    CAST(CAST(l.liitm AS BIGINT) AS TEXT) as itm,
+                    TRIM(m.imlitm) as litm,
                     TRIM(m.imdsc1) as dsci,
                     TRIM(l.lilotn) as lotn,
                     TRIM(l.lilocn) as secu,
                     TRIM(l.limcu) as primary_uom,
                     TRIM(m.imuom1) as un,
-                    l.lipqoh as pqoh
+                    (l.lipqoh / 100.0) as pqoh
                 FROM {schema}.f41021 l
                 JOIN {schema}.f4101 m ON l.liitm = m.imitm
                 WHERE {where_str}

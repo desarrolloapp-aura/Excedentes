@@ -2,11 +2,13 @@ import { createContext, useContext, useState, ReactNode } from 'react'
 
 export interface CartItem {
     id: string
+    itm: string
     litm: string
     dsci: string
-    cantidad: number // Cantidad a comprar (Déficit)
+    cantidad: number // Cantidad a comprar
     primary_uom: string
-    currentStock: number
+    qty_disponible: number
+    total_jde_stock: number
     targetQuantity: number
 }
 
