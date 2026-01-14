@@ -42,8 +42,5 @@ frontend/package-lock.json
 **/__pycache__/
 **/.DS_Store
 **/*.pyc
-**/node_modules
-**/dist
-# Allow .env.example templates
-!**/.env.example
 **/.env*
+!**/.env.example

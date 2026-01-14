@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import { supabase } from '../lib/supabase.ts'
 import { useCart } from '../contexts/CartContext.tsx'
 import { useNotification } from '../contexts/NotificationContext.tsx'
@@ -35,6 +35,8 @@ export default function Dashboard() {
     const [searchTerm, setSearchTerm] = useState('')
     const [page, setPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
+    const [totalItems, setTotalItems] = useState(0)
+    const [debugInfo, setDebugInfo] = useState('')
     const PAGE_SIZE = 50
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -79,9 +81,10 @@ export default function Dashboard() {
 
             if (!session) return
 
-            let url = `http://192.168.1.245:8000/excedentes/existencias?page=${page}&page_size=${PAGE_SIZE}`
-            if (searchTerm) {
-                url += `&search=${encodeURIComponent(searchTerm)}`
+            let url = `http://192.168.1.245:8000/excedentes/existencias?page=${page}&page_size=${PAGE_SIZE}&_t=${Date.now()}`
+            const currentSearch = searchTerm.trim()
+            if (currentSearch) {
+                url += `&search=${encodeURIComponent(currentSearch)}`
             }
 
             const response = await fetch(url, {
@@ -92,9 +95,34 @@ export default function Dashboard() {
 
             if (!response.ok) throw new Error('Error al cargar productos')
 
+            setDebugInfo(`${url} [STATUS: ${response.status}]`)
+
             const data = await response.json()
             const jdeProducts: Product[] = data.items || []
-            setTotalPages(Math.max(1, Math.ceil((data.total || 0) / PAGE_SIZE)))
+
+            // Forzar conversión a número para evitar problemas de tipos
+            const rawTotal = Number(data.total || 0)
+            const backendTotalPages = Number(data.total_pages || Math.ceil(rawTotal / PAGE_SIZE))
+            const newTotalPages = Math.max(1, backendTotalPages)
+
+            console.log(`PAGINACIÓN DEBUG: total=${rawTotal}, total_pages=${newTotalPages}, page=${page}`)
+
+            // Debug para el usuario en el móvil
+            if (rawTotal === 0 && !currentSearch) {
+                console.warn("ALERTA: El backend devolvió 0 productos sin filtro de búsqueda!")
+            }
+
+            setTotalItems(rawTotal)
+            setTotalPages(newTotalPages)
+
+            // Notificación de depuración (solo visible un momento)
+            // showNotification(`Backend dice: Total=${rawTotal}, Páginas=${newTotalPages}`, 'info')
+
+            // Salvaguarda: si la página actual es mayor al total devuelto, volvemos a la 1
+            if (page > newTotalPages && newTotalPages > 0) {
+                console.warn(`Página actual (${page}) excede total (${newTotalPages}). Volviendo a 1.`)
+                setPage(1)
+            }
 
             console.log("--- INICIO RECONCILIACIÓN ---")
             console.log(`Buscando items pendientes... (Total JDE traídos: ${jdeProducts.length})`)
@@ -146,8 +174,9 @@ export default function Dashboard() {
 
             setProducts(productsWithPending)
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('FetchProducts Error:', error)
+            setDebugInfo(`ERROR: ${error.message || 'Error de conexión'}`)
             // Solo mostrar error si seguimos en el catálogo para evitar ruidos en otras vistas
             if (view === 'catalog') {
                 showNotification('error', 'Error de Conexión', 'No se pudieron sincronizar las existencias. Verifica tu conexión a la red local.')
@@ -771,31 +800,77 @@ export default function Dashboard() {
                                 )}
                             </div>
                         </div>
-                        <div className="bg-gray-50 px-4 sm:px-6 py-4 flex items-center justify-between border-t border-gray-200">
-                            <button
-                                onClick={() => {
-                                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                                    setPage(p => Math.max(1, p - 1));
-                                }}
-                                disabled={page === 1}
-                                className="text-xs sm:text-sm font-bold text-gray-600 hover:text-gray-900 disabled:opacity-40 px-3 sm:px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm active:scale-95 transition-all"
-                            >
-                                &larr; Anterior
-                            </button>
-                            <div className="flex flex-col items-center">
-                                <span className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-widest">Página</span>
-                                <span className="text-sm sm:text-base font-black text-indigo-600">{page} <span className="text-gray-300 font-medium px-1">/</span> {totalPages}</span>
+                        <div className="bg-gray-50 px-4 py-4 flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 gap-4">
+                            <div className="order-2 sm:order-1">
+                                <p className="text-[10px] sm:text-xs text-gray-500 text-center sm:text-left font-bold uppercase tracking-widest bg-white/50 px-3 py-1 rounded-full border border-gray-100 shadow-sm">
+                                    Página <span className="text-indigo-600">{page}</span> <span className="text-gray-300 mx-1">/</span> {totalPages}
+                                    <span className={`ml-2 px-2 py-0.5 rounded ${totalItems === 0 ? 'bg-red-100 text-red-600 animate-pulse' : 'text-gray-400 font-medium'}`}>
+                                        (Total: {totalItems})
+                                    </span>
+                                </p>
+                                {debugInfo && <p className="text-[8px] text-gray-300 mt-1 truncate max-w-[200px]">{debugInfo}</p>}
                             </div>
-                            <button
-                                onClick={() => {
-                                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                                    setPage(p => Math.min(totalPages, p + 1));
-                                }}
-                                disabled={page === totalPages}
-                                className="text-xs sm:text-sm font-bold text-gray-600 hover:text-gray-900 disabled:opacity-40 px-3 sm:px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm active:scale-95 transition-all"
-                            >
-                                Siguiente &rarr;
-                            </button>
+                            <div className="order-1 sm:order-2">
+                                <nav className="isolate inline-flex -space-x-px rounded-xl shadow-sm bg-white overflow-hidden ring-1 ring-gray-200" aria-label="Pagination">
+                                    <button
+                                        onClick={() => {
+                                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                                            setPage(p => Math.max(1, p - 1));
+                                        }}
+                                        disabled={page === 1}
+                                        className="relative inline-flex items-center px-3 py-3 text-gray-400 hover:bg-indigo-50 hover:text-indigo-600 focus:z-20 transition-all disabled:opacity-20"
+                                    >
+                                        <span className="sr-only">Anterior</span>
+                                        <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
+                                        </svg>
+                                    </button>
+
+                                    {[...Array(totalPages)].map((_, i) => {
+                                        const pNum = i + 1;
+                                        const isFirst = pNum === 1;
+                                        const isLast = pNum === totalPages;
+                                        const isNear = Math.abs(pNum - page) <= 1;
+
+                                        if (!isNear && !isFirst && !isLast) return null;
+
+                                        const showStartEllipsis = pNum === 1 && page > 3;
+                                        const showEndEllipsis = pNum === totalPages && page < totalPages - 2;
+
+                                        return (
+                                            <Fragment key={pNum}>
+                                                {showStartEllipsis && <span className="relative inline-flex items-center px-4 py-3 text-xs font-bold text-gray-400 bg-gray-50/50">...</span>}
+                                                <button
+                                                    onClick={() => {
+                                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                                        setPage(pNum);
+                                                    }}
+                                                    className={`relative inline-flex items-center px-4 py-3 text-xs font-black transition-all ${page === pNum
+                                                        ? 'z-10 bg-indigo-600 text-white shadow-inner'
+                                                        : 'text-gray-600 hover:bg-indigo-50 hover:text-indigo-600'}`}
+                                                >
+                                                    {pNum}
+                                                </button>
+                                                {showEndEllipsis && <span className="relative inline-flex items-center px-4 py-3 text-xs font-bold text-gray-400 bg-gray-50/50">...</span>}
+                                            </Fragment>
+                                        );
+                                    })}
+
+                                    <button
+                                        onClick={() => {
+                                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                                            setPage(p => Math.min(totalPages, p + 1));
+                                        }}
+                                        disabled={page === totalPages}
+                                        className="relative inline-flex items-center px-3 py-3 text-gray-400 hover:bg-indigo-50 hover:text-indigo-600 focus:z-20 transition-all disabled:opacity-20"
+                                    >
+                                        <span className="sr-only">Siguiente</span>
+                                        <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </nav>
+                            </div>
                         </div>
                     </div>
                 )}

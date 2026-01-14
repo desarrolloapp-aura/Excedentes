@@ -1,0 +1,89 @@
+[2026-01-14 18:21:06.353217] REQ: page=1, size=50, search='None', total=2480
+[2026-01-14 18:21:06.409462] REQ: page=1, size=50, search='None', total=2480
+[2026-01-14 18:21:06.513141] REQ: page=1, size=50, search='None', total=2480
+[2026-01-14 18:21:10.003068] REQ: page=1, size=50, search='None', total=2480
+[2026-01-14 18:21:26.128178] REQ: page=1, size=50, search='None', total=2480
+[2026-01-14 18:21:26.954403] REQ: page=1, size=50, search='None', total=2480
+[2026-01-14 18:21:55.360916] REQ: page=1, size=50, search='None', total=2480
+[2026-01-14 18:21:55.376429] REQ: page=1, size=50, search='None', total=2480
+[2026-01-14 18:24:21.243310] REQ: page=1, size=50, search='None', total=2480
+[2026-01-14 18:25:15.860209] REQ: page=1, size=50, search='None', total=2480
+[2026-01-14 18:25:19.576488] REQ: page=1, size=50, search='None', total=2480
+[2026-01-14 18:25:37.122164] REQ: page=1, size=50, search='None', total=2480
+[2026-01-14 18:25:46.068807] REQ: page=1, size=50, search='None', total=2480
+[2026-01-14 18:26:24.221479] REQ: page=1, size=50, search='None', total=2480
+[2026-01-14 18:27:07.539826] REQ: page=1, size=50, search='None', total=2480
+[2026-01-14 18:27:07.549088] REQ: page=1, size=50, search='None', total=2480
+[2026-01-14 18:27:08.870918] REQ: page=1, size=50, search='None', total=2480
+[2026-01-14 18:27:08.892352] REQ: page=1, size=50, search='None', total=2480
+[18:34:30] IP: 192.168.1.180 | OK: p=1, total=2480, s='None'
+[18:34:30] IP: 192.168.1.180 | OK: p=1, total=2480, s='None'
+ERROR: name 'items' is not defined
+Traceback (most recent call last):
+  File "C:\Users\usuario\Desktop\sistema compra JDE\backend\app\routers\excedentes.py", line 93, in get_existencias
+    item_count = len(items)
+                     ^^^^^
+NameError: name 'items' is not defined. Did you mean: 'iter'?
+
+ERROR: name 'items' is not defined
+Traceback (most recent call last):
+  File "C:\Users\usuario\Desktop\sistema compra JDE\backend\app\routers\excedentes.py", line 93, in get_existencias
+    item_count = len(items)
+                     ^^^^^
+NameError: name 'items' is not defined. Did you mean: 'iter'?
+
+ERROR: name 'items' is not defined
+Traceback (most recent call last):
+  File "C:\Users\usuario\Desktop\sistema compra JDE\backend\app\routers\excedentes.py", line 93, in get_existencias
+    item_count = len(items)
+                     ^^^^^
+NameError: name 'items' is not defined. Did you mean: 'iter'?
+
+ERROR: name 'items' is not defined
+Traceback (most recent call last):
+  File "C:\Users\usuario\Desktop\sistema compra JDE\backend\app\routers\excedentes.py", line 93, in get_existencias
+    item_count = len(items)
+                     ^^^^^
+NameError: name 'items' is not defined. Did you mean: 'iter'?
+
+ERROR: name 'items' is not defined
+Traceback (most recent call last):
+  File "C:\Users\usuario\Desktop\sistema compra JDE\backend\app\routers\excedentes.py", line 93, in get_existencias
+    item_count = len(items)
+                     ^^^^^
+NameError: name 'items' is not defined. Did you mean: 'iter'?
+
+ERROR: name 'items' is not defined
+Traceback (most recent call last):
+  File "C:\Users\usuario\Desktop\sistema compra JDE\backend\app\routers\excedentes.py", line 93, in get_existencias
+    item_count = len(items)
+                     ^^^^^
+NameError: name 'items' is not defined. Did you mean: 'iter'?
+
+ERROR: name 'items' is not defined
+Traceback (most recent call last):
+  File "C:\Users\usuario\Desktop\sistema compra JDE\backend\app\routers\excedentes.py", line 93, in get_existencias
+    data_items = result.get('items', [])
+                     ^^^^^
+NameError: name 'items' is not defined. Did you mean: 'iter'?
+
+[18:38:14] IP: 192.168.1.245 | OK: p=1, total=2480, items=50, s='None'
+   RES_HEAD: BOCINA PLATO 24V...
+[18:38:14] IP: 192.168.1.245 | OK: p=1, total=2480, items=50, s='None'
+   RES_HEAD: BOCINA PLATO 24V...
+[18:38:22] IP: 192.168.1.180 | OK: p=1, total=2480, items=50, s='None'
+   RES_HEAD: BOCINA PLATO 24V...
+[18:38:22] IP: 192.168.1.180 | OK: p=1, total=2480, items=50, s='None'
+   RES_HEAD: BOCINA PLATO 24V...
+[18:39:18] IP: 192.168.1.180 | OK: p=1, total=2480, items=50, s='None'
+   RES_HEAD: BOCINA PLATO 24V...
+[18:39:18] IP: 192.168.1.180 | OK: p=1, total=2480, items=50, s='None'
+   RES_HEAD: BOCINA PLATO 24V...
+[18:39:30] IP: 192.168.1.180 | OK: p=1, total=2480, items=50, s='None'
+   RES_HEAD: BOCINA PLATO 24V...
+[18:39:30] IP: 192.168.1.180 | OK: p=1, total=2480, items=50, s='None'
+   RES_HEAD: BOCINA PLATO 24V...
+[18:39:33] IP: 192.168.1.180 | OK: p=1, total=2480, items=50, s='None'
+   RES_HEAD: BOCINA PLATO 24V...
+[18:39:33] IP: 192.168.1.180 | OK: p=1, total=2480, items=50, s='None'
+   RES_HEAD: BOCINA PLATO 24V...

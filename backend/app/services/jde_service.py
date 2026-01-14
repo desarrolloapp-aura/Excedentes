@@ -86,9 +86,12 @@ class JDEService:
             
             items = [dict(row) for row in rows]
             
+            total_pages = (total + page_size - 1) // page_size if total else 1
+            
             return {
                 "items": items,
                 "total": total,
+                "total_pages": total_pages,
                 "page": page,
                 "page_size": page_size
             }

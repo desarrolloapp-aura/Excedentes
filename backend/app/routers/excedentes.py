@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException, Request
 from typing import Optional
 from app.routers.auth import get_user
 from app.services.jde_service import jde_service
@@ -60,7 +60,8 @@ async def get_existencias(
     ubicacion: Optional[str] = Query(None),
     min_stock: Optional[float] = Query(None),
     page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=100),
+    page_size: int = Query(50, ge=1, le=100),
+    request: Request = None,
     user: dict = Depends(get_user)
 ):
     """Consulta existencias con filtros y paginación"""
@@ -82,13 +83,43 @@ async def get_existencias(
             page=page,
             page_size=page_size
         )
-        logger.info(f"Consulta exitosa. Total items: {result.get('total', 0)}")
+        total_found = result.get('total', 0)
+        client_ip = request.client.host if request and request.client else "unknown"
+        
+        # Log success to debug file con más detalle
+        with open("debug_api.txt", "a") as f:
+            from datetime import datetime
+            now = datetime.now().strftime("%H:%M:%S")
+            data_items = result.get('items', [])
+            item_count = len(data_items)
+            f.write(f"[{now}] IP: {client_ip} | OK: p={page}, total={total_found}, items={item_count}, s='{search}'\n")
+            if item_count > 0:
+                f.write(f"   RES_HEAD: {data_items[0].get('dsci', 'NO_DESC')[:20]}...\n")
+            else:
+                f.write(f"   RES_EMPTY!\n")
+            
         return result
     except Exception as e:
         import traceback
         error_detail = str(e)
         traceback_str = traceback.format_exc()
+        
+        # Log error to debug file
+        with open("debug_api.txt", "a") as f:
+            f.write(f"ERROR: {error_detail}\n{traceback_str}\n")
+            
         print(f"Error en get_existencias: {error_detail}")
         print(f"Traceback: {traceback_str}")
         raise HTTPException(status_code=500, detail=f"Error al consultar existencias: {error_detail}")
+
+@router.get("/debug-logs")
+async def get_debug_logs():
+    try:
+        import os
+        if os.path.exists("debug_api.txt"):
+            with open("debug_api.txt", "r") as f:
+                return {"logs": f.readlines()[-100:]}
+        return {"logs": ["No logs found"]}
+    except:
+        return {"error": "Could not read logs"}
 
