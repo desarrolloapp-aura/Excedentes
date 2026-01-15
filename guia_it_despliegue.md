@@ -6,14 +6,32 @@ Este documento explica cómo desplegar el "Sistema de Compra JDE" en los servido
 > **NO ES NECESARIO MODIFICAR EL CÓDIGO FUENTE.**
 > El sistema está diseñado siguiendo el principio de "12-factor app". Toda la configuración (credenciales, IPs, llaves) se gestiona exclusivamente a través de **Variables de Entorno** (archivos `.env`). El equipo de TI solo debe configurar estos archivos sin tocar los archivos `.py` o `.tsx`.
 
-## 1. El Concepto Clave: Aplicación vs. Infraestructura
+## 1. Requisitos Técnicos del Servidor
+
+Para garantizar la estabilidad del sistema y de la infraestructura de base de datos local, se recomiendan las siguientes especificaciones:
+
+### Especificaciones de Hardware
+- **CPU**: 2 vCPUs (Mínimo).
+- **RAM**: 4GB (Mínimo recomendado). 
+  - *Nota: El Backend y Frontend son extremadamente ligeros (~300MB), el grueso de la RAM es para la infraestructura de contenedores de Supabase/PostgreSQL.*
+- **Almacenamiento**: 40GB SSD (Mínimo).
+  - Suficiente para el Sistema Operativo, las imágenes de Docker y el crecimiento de la base de datos histórica por varios años.
+
+### Especificaciones de Software
+- **SO**: Linux (Ubuntu 22.04 LTS recomendado) o Windows Server con Docker Desktop/WSL2.
+- **Herramientas**: Docker Engine (20.10+) y Docker Compose V2.
+- **Python**: No es necesario instalarlo en el servidor (ya viene dentro del contenedor Docker).
+
+---
+
+## 2. El Concepto Clave: Aplicación vs. Infraestructura
 El repositorio contiene la **Aplicación** (Frontend en React y Backend en FastAPI), pero esta aplicación requiere de una **Infraestructura de Servicios** para funcionar (Base de datos y el sistema de Login con Google).
 
 Actualmente, estos servicios corren en una cuenta personal de **Supabase**. TI debe elegir uno de los siguientes caminos para el traspaso:
 
 ---
 
-## 2. Estrategia de Despliegue: Supabase Local con Docker
+## 3. Estrategia de Despliegue: Supabase Local con Docker
 
 Para este proyecto, la empresa ha optado por un **despliegue 100% local**. Esto significa que se instalarán todos los servicios (Base de datos y Autenticación) dentro de los servidores de la empresa usando Docker.
 
@@ -22,7 +40,7 @@ Para este proyecto, la empresa ha optado por un **despliegue 100% local**. Esto 
 
 ---
 
-## 3. Checklist de Credenciales (Qué debe poner TI)
+## 4. Checklist de Credenciales (Qué debe poner TI)
 
 Como los archivos `.env` no se suben al repositorio por seguridad, el equipo de TI debe crear los suyos propios con esta información:
 
@@ -32,7 +50,7 @@ Como los archivos `.env` no se suben al repositorio por seguridad, el equipo de 
 
 ---
 
-## 4. Configuración del Repositorio
+## 5. Configuración del Repositorio
 TI encontrará estos archivos listos en la raíz para orquestar la aplicación:
 
 - **`docker-compose.yml`**: Orquestación del Backend (FastAPI) y Frontend (Nginx).
@@ -45,13 +63,35 @@ TI encontrará estos archivos listos en la raíz para orquestar la aplicación:
 
 ---
 
-## 5. Migración de la Base de Datos (Estructura)
-Para pasar los datos actuales (historial de compras) al nuevo servidor, el equipo de TI debe ejecutar el script SQL que se encuentra en `/database/schema.sql`. 
+## 6. División de Responsabilidades (Recomendado)
 
-> [!NOTE] 
-> Este archivo actúa como la **migración manual** del sistema. No es estrictamente necesario configurar el sistema de "Supabase Migrations CLI" a menos que TI prefiera ese flujo de trabajo avanzado. Con ejecutar este SQL es suficiente para que la App sea operativa.
+Para evitar errores de compatibilidad, la mejor forma de trabajar el despliegue es:
+
+1.  **TI (El Dueño de la Casa)**: Crea la base de datos vacía en su servidor y te entrega a ti las credenciales (Host, Usuario, Password).
+2.  **TÚ / El Desarrollador (El Decorador)**: Te conectas a esa base de datos y ejecutas el archivo `database/schema.sql`. 
+
+**¿Por qué es mejor así?**
+Si TI intenta crear las tablas manualmente, podrían equivocarse en un nombre o en un tipo de dato (ej. poner texto donde va un número). Es mejor que el desarrollador use el script que ya está probado con el código.
 
 ---
 
-## 6. Login de Google
-TI deberá configurar un nuevo "Client ID" en la consola de Google Cloud vinculado a la dirección IP o dominio del nuevo servidor corporativo.
+## 7. Migración de Datos (Pasar el historial)
+Si deseas que el historial de compras actual aparezca en el nuevo sistema:
+1.  **TI**: Debe permitirte una conexión temporal para subir datos.
+2.  **Usuario**: Exporta los datos de su Supabase actual e importa el contenido en las nuevas tablas creadas.
+
+---
+
+## 8. Configuración de Google Login (Manejado por el Desarrollador)
+
+Para que el login con cuentas de la empresa funcione en el nuevo servidor:
+
+1.  **Obtener IP**: TI debe proporcionar la IP pública o dominio del nuevo servidor.
+2.  **Google Cloud Console**: El desarrollador (tú) debe crear un nuevo Proyecto o Cliente OAuth 2.0.
+3.  **Redirect URI**: En la configuración de Google, se debe añadir el siguiente URI autorizado:
+    - `http://[IP_DEL_SERVIDOR]:8000/auth/v1/callback`
+4.  **Vincular**: El `Client ID` y `Client Secret` resultantes se deben pegar en la configuración de autenticación del Supabase local.
+
+---
+
+**Fin de la Guía.**
